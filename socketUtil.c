@@ -7,9 +7,21 @@ struct sockaddr_in* createIPv4SockAddr(const char* ip, int port) {
     addr->sin_port = htons(port);
     if (strlen(ip) == 0) {
         addr->sin_addr.s_addr = INADDR_ANY;
-        return addr;
+    } else {
+#ifdef _WIN32
+        if (InetPton(AF_INET, ip, &addr->sin_addr.s_addr) != 1) {
+            fprintf(stderr, "InetPton failed\n");
+            free(addr);
+            return NULL;
+        }
+#else
+        if (inet_pton(AF_INET, ip, &addr->sin_addr.s_addr) != 1) {
+            fprintf(stderr, "inet_pton failed\n");
+            free(addr);
+            return NULL;
+        }
+#endif
     }
-    inet_pton(AF_INET, ip, &addr->sin_addr.s_addr);
     return addr;
 }
 
